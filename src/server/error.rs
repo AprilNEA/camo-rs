@@ -31,7 +31,11 @@ pub enum CamoError {
     Timeout,
 
     #[error("upstream error: {0}")]
-    Upstream(#[from] reqwest::Error),
+    Upstream(String),
+
+    #[cfg(feature = "server")]
+    #[cfg_attr(feature = "server", error("reqwest error: {0}"))]
+    ReqwestError(#[from] reqwest::Error),
 
     #[error("private network not allowed")]
     PrivateNetworkNotAllowed,
@@ -54,6 +58,9 @@ impl IntoResponse for CamoError {
             CamoError::Timeout => StatusCode::GATEWAY_TIMEOUT,
 
             CamoError::Upstream(_) => StatusCode::BAD_GATEWAY,
+            
+            #[cfg(feature = "server")]
+            CamoError::ReqwestError(_) => StatusCode::BAD_GATEWAY,
 
             CamoError::PrivateNetworkNotAllowed => StatusCode::FORBIDDEN,
         };

@@ -1,31 +1,26 @@
-mod config;
-mod content_types;
-mod crypto;
-mod encoding;
-mod error;
-mod proxy;
-mod server;
-
-use camo::{CamoUrl, Encoding};
+use camo::{
+    server::{
+        config::{Command, Config},
+        router::{create_router, AppState},
+    },
+    {CamoUrl, Encoding},
+};
 use clap::Parser;
-use config::{Cli, Command};
-use proxy::ProxyClient;
-use server::{create_router, AppState};
 use std::sync::Arc;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
+    let cli = Config::parse();
+
+    let key = cli
+        .key
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("CAMO_KEY is required for signing"))?;
 
     match &cli.command {
         Some(Command::Sign { url, base, base64 }) => {
-            let key = cli
-                .key
-                .as_ref()
-                .ok_or_else(|| anyhow::anyhow!("CAMO_KEY is required for signing"))?;
-
             let camo = CamoUrl::new(key).with_encoding(if *base64 {
                 Encoding::Base64
             } else {
@@ -43,11 +38,6 @@ async fn main() -> anyhow::Result<()> {
             }
         }
         Some(Command::Serve) | None => {
-            let key = cli
-                .key
-                .clone()
-                .ok_or_else(|| anyhow::anyhow!("CAMO_KEY is required"))?;
-
             // Initialize logging
             tracing_subscriber::fmt()
                 .with_env_filter(
@@ -65,16 +55,13 @@ async fn main() -> anyhow::Result<()> {
             }
 
             let listen = cli.listen.clone();
-            let config = Arc::new(Cli {
-                key: Some(key),
+            let config = Arc::new(Config {
+                key: Some(key.clone()),
                 ..cli
             });
 
-            // Create proxy client
-            let proxy = ProxyClient::new(config.clone());
-
             // Create app state
-            let state = Arc::new(AppState { config, proxy });
+            let state = Arc::new(AppState::from_config(&config));
 
             // Create router
             let app = create_router(state);
