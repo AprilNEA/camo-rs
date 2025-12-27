@@ -1,24 +1,26 @@
-FROM rust:1.83-alpine AS builder
-
-RUN apk add --no-cache musl-dev
-
+FROM lukemathwalker/cargo-chef:latest-rust-1.92 AS chef
 WORKDIR /app
 
-COPY Cargo.toml Cargo.lock* ./
-RUN mkdir src && echo "fn main() {}" > src/main.rs && mkdir -p src
-RUN echo "pub fn dummy() {}" > src/lib.rs
-RUN cargo build --release --features server || true
-RUN rm -rf src
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-COPY src ./src
-RUN touch src/main.rs src/lib.rs && cargo build --release --features server
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
 
-FROM alpine:3.21
+RUN cargo chef cook --release --recipe-path recipe.json
 
-RUN apk add --no-cache ca-certificates
+COPY . .
+RUN cargo build --no-default-features --release --features server
 
-COPY --from=builder /app/target/release/camo-rs /usr/local/bin/
+FROM debian:bookworm-slim AS runtime
+WORKDIR /app
 
-EXPOSE 8080
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["camo-rs"]
+COPY --from=builder /app/target/release/camo /usr/local/bin/
+
+EXPOSE 3000
+ENTRYPOINT ["/usr/local/bin/camo"]
