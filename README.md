@@ -1,10 +1,15 @@
-# camo-rs
+<img src=".github/splash.png" alt="camo-rs" />
+
+[![status](https://img.shields.io/badge/status-stable-blue.svg)](https://github.com/aprilnea/camo-rs/tree/master)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Crates.io Version](https://img.shields.io/crates/v/camo-rs)
+<h4><strong>English</strong> | <a href="./README_CN.md">简体中文</a></h4>
+
+## Introduction
 
 A high-performance SSL image proxy written in Rust. This is a Rust implementation of [Camo](https://github.com/atmos/camo), inspired by [go-camo](https://github.com/cactus/go-camo).
 
 Camo proxies insecure HTTP images over HTTPS, preventing mixed content warnings on secure pages.
-
-[中文文档](./README_CN.md)
 
 ## Features
 
@@ -25,19 +30,19 @@ Camo proxies insecure HTTP images over HTTPS, preventing mixed content warnings 
 Add to your `Cargo.toml`:
 
 ```toml
+# Client only (minimal dependencies: hmac, sha1, hex, base64)
 [dependencies]
-camo = { git = "https://github.com/AprilNEA/camo-rs" }
+camo-rs = "0.1"
+
+# Server (includes tokio, axum, reqwest, etc.)
+[dependencies]
+camo = { version="0.1", features=["server"] }
 ```
 
-### From source
-
+### As a binary
 ```bash
-git clone https://github.com/AprilNEA/camo-rs.git
-cd camo-rs
-cargo build --release --features server
+cargo install camo-rs
 ```
-
-The binary will be at `target/release/camo-rs`.
 
 ## Cargo Features
 
@@ -47,40 +52,22 @@ The binary will be at `target/release/camo-rs`.
 | `server` | No | Full proxy server with CLI, metrics, and all dependencies |
 | `worker` | No | Cloudflare Workers support |
 
-```toml
-# Client only (minimal dependencies: hmac, sha1, hex, base64)
-[dependencies]
-camo = { git = "https://github.com/AprilNEA/camo-rs" }
-
-# Server (includes tokio, axum, reqwest, etc.)
-[dependencies]
-camo = { git = "https://github.com/AprilNEA/camo-rs", features = ["server"] }
-```
-
 ## Cloudflare Workers
 
 Deploy camo-rs to Cloudflare Workers for edge-based image proxying.
 
-### One-Click Deploy
+### Fork Deploy
+1. Fork this repository
+2. Deploy the repository which you forked in Cloudflare Workes.
+ 
+### One-Click Deploy (Not recommended)
 
+> [!WARNING]
+> Cloudflare will copy the code from the repository rather than fork it, which will result in losing any updates.
+> 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/AprilNEA/camo-rs)
 
-> **Important:** After deployment, you must set your HMAC secret key:
-> ```bash
-> wrangler secret put CAMO_KEY
-> ```
-
 ### Manual Deployment
-
-#### Prerequisites
-
-```bash
-# Install wasm target
-rustup target add wasm32-unknown-unknown
-
-# Install wrangler CLI
-npm install -g wrangler
-```
 
 #### Deploy
 
@@ -90,22 +77,6 @@ wrangler secret put CAMO_KEY
 
 # Deploy
 wrangler deploy
-```
-
-#### Configuration
-
-Edit `wrangler.toml`:
-
-```toml
-name = "camo-rs"
-main = "build/worker/shim.mjs"
-compatibility_date = "2025-01-01"
-
-[build]
-command = "cargo install -q worker-build && worker-build --release --features worker"
-
-[vars]
-CAMO_MAX_SIZE = "5242880"  # 5MB
 ```
 
 ### Environment Variables
@@ -118,7 +89,7 @@ CAMO_MAX_SIZE = "5242880"  # 5MB
 ## Library Usage
 
 ```rust
-use camo::{CamoUrl, Encoding};
+use camo_rs::{CamoUrl, Encoding};
 
 // Create a CamoUrl generator with your secret key
 let camo = CamoUrl::new("your-secret-key");
@@ -153,33 +124,40 @@ assert!(camo.verify("http://example.com/image.png", &signed.digest));
 
 ### Start the server
 
+**Binary:**
+
 ```bash
 # Using environment variable
-CAMO_KEY=your-secret-key camo-rs
+CAMO_KEY=your-secret-key camo
 
 # Using CLI argument
-camo-rs -k your-secret-key
+camo -k your-secret-key
 
 # With custom options
-camo-rs -k your-secret-key --listen 0.0.0.0:8081 --max-size 10485760
+camo -k your-secret-key --listen 0.0.0.0:8081 --max-size 10485760
+```
+
+**Docker:**
+```bash
+docker run
 ```
 
 ### Generate signed URLs
 
 ```bash
 # Generate URL components
-camo-rs -k your-secret sign "https://example.com/image.png"
+camo -k your-secret sign "https://example.com/image.png"
 # Output:
 # Digest: 54cec8e46f18f585268e3972432cd8da7aec6dc1
 # Encoded URL: 68747470733a2f2f6578616d706c652e636f6d2f696d6167652e706e67
 # Path: /54cec8e46f18f585268e3972432cd8da7aec6dc1/68747470...
 
 # Generate full URL
-camo-rs -k your-secret sign "https://example.com/image.png" --base "https://camo.example.com"
+camo -k your-secret sign "https://example.com/image.png" --base "https://camo.example.com"
 # Output: https://camo.example.com/54cec8e46f18f585268e3972432cd8da7aec6dc1/68747470...
 
 # Use base64 encoding
-camo-rs -k your-secret sign "https://example.com/image.png" --base64
+camo -k your-secret sign "https://example.com/image.png" --base64
 ```
 
 ### URL Formats
@@ -265,25 +243,6 @@ fn camo_url(key: &str, url: &str, base_url: &str) -> String {
 | `/metrics` | Prometheus metrics (if enabled) |
 | `/<digest>/<encoded_url>` | Proxy endpoint (path format) |
 | `/<digest>?url=<url>` | Proxy endpoint (query format) |
-
-## Docker
-
-```dockerfile
-FROM rust:1.83-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN cargo build --release
-
-FROM alpine:latest
-COPY --from=builder /app/target/release/camo-rs /usr/local/bin/
-EXPOSE 8080
-ENTRYPOINT ["camo-rs"]
-```
-
-```bash
-docker build -t camo-rs .
-docker run -p 8080:8080 -e CAMO_KEY=your-secret camo-rs
-```
 
 ## License
 
