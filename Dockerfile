@@ -11,7 +11,7 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
-RUN cargo build --no-default-features --release --features server
+RUN cargo build --bin camo --no-default-features --release --features server,client
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
