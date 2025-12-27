@@ -1,4 +1,3 @@
-use crate::error::{CamoError, Result};
 use hmac::{Hmac, Mac};
 use sha1::Sha1;
 
@@ -11,16 +10,10 @@ pub fn generate_digest(key: &str, url: &str) -> String {
     hex::encode(mac.finalize().into_bytes())
 }
 
-/// Verify HMAC-SHA1 digest
-pub fn verify_digest(key: &str, url: &str, digest: &str) -> Result<()> {
+/// Verify HMAC-SHA1 digest (returns bool)
+pub fn verify_digest(key: &str, url: &str, digest: &str) -> bool {
     let expected = generate_digest(key, url);
-
-    // Constant-time comparison
-    if constant_time_eq(expected.as_bytes(), digest.as_bytes()) {
-        Ok(())
-    } else {
-        Err(CamoError::DigestMismatch)
-    }
+    constant_time_eq(expected.as_bytes(), digest.as_bytes())
 }
 
 /// Constant-time string comparison
@@ -47,7 +40,7 @@ mod tests {
         let digest = generate_digest(key, url);
 
         assert_eq!(digest.len(), 40); // SHA1 produces 20 bytes = 40 hex chars
-        assert!(verify_digest(key, url, &digest).is_ok());
+        assert!(verify_digest(key, url, &digest));
     }
 
     #[test]
@@ -55,6 +48,6 @@ mod tests {
         let key = "test-secret-key";
         let url = "https://example.com/image.png";
 
-        assert!(verify_digest(key, url, "invalid-digest").is_err());
+        assert!(!verify_digest(key, url, "invalid-digest"));
     }
 }

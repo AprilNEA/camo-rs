@@ -65,8 +65,8 @@ async fn proxy_path(
     Path((digest, encoded_url)): Path<(String, String)>,
 ) -> Response {
     let url = match decode_url(&encoded_url) {
-        Ok(u) => u,
-        Err(e) => return e.into_response(),
+        Some(u) => u,
+        None => return (StatusCode::BAD_REQUEST, "Invalid URL encoding").into_response(),
     };
 
     proxy_request(&state, &digest, &url).await
@@ -80,11 +80,11 @@ async fn proxy_request(state: &Arc<AppState>, digest: &str, url: &str) -> Respon
 
     // Verify digest
     let key = state.config.key.as_ref().expect("key must be set");
-    if let Err(e) = verify_digest(key, url, digest) {
+    if !verify_digest(key, url, digest) {
         if state.config.metrics {
             metrics::counter!("camo_errors_total", "type" => "digest").increment(1);
         }
-        return e.into_response();
+        return CamoError::DigestMismatch.into_response();
     }
 
     // Proxy the request

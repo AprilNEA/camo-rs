@@ -5,10 +5,9 @@ mod error;
 mod proxy;
 mod server;
 
+use camo::{CamoUrl, Encoding};
 use clap::Parser;
 use config::{Cli, Command};
-use crypto::generate_digest;
-use encoding::{encode_url_base64, encode_url_hex};
 use proxy::ProxyClient;
 use server::{create_router, AppState};
 use std::sync::Arc;
@@ -26,20 +25,20 @@ async fn main() -> anyhow::Result<()> {
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("CAMO_KEY is required for signing"))?;
 
-            let digest = generate_digest(key, url);
-            let encoded_url = if *base64 {
-                encode_url_base64(url)
+            let camo = CamoUrl::new(key).with_encoding(if *base64 {
+                Encoding::Base64
             } else {
-                encode_url_hex(url)
-            };
+                Encoding::Hex
+            });
+
+            let signed = camo.sign(url);
 
             if base.is_empty() {
-                println!("Digest: {}", digest);
-                println!("Encoded URL: {}", encoded_url);
-                println!("Path: /{}/{}", digest, encoded_url);
+                println!("Digest: {}", signed.digest);
+                println!("Encoded URL: {}", signed.encoded_url);
+                println!("Path: {}", signed.to_path());
             } else {
-                let base = base.trim_end_matches('/');
-                println!("{}/{}/{}", base, digest, encoded_url);
+                println!("{}", signed.to_url(base));
             }
         }
         Some(Command::Serve) | None => {
