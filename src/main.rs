@@ -1,4 +1,5 @@
 mod config;
+mod content_types;
 mod crypto;
 mod encoding;
 mod error;

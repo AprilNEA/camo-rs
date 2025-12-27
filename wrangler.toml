@@ -1,0 +1,9 @@
+name = "camo"
+main = "build/worker/shim.mjs"
+compatibility_date = "2025-01-01"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release --features worker"
+
+[vars]
+CAMO_MAX_SIZE = "5242880"

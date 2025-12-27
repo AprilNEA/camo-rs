@@ -45,6 +45,7 @@ cargo build --release --features server
 |---------|------|------|
 | `client` | 是 | 核心 URL 签名功能，最小依赖 |
 | `server` | 否 | 完整代理服务器，包含 CLI、监控等所有依赖 |
+| `worker` | 否 | Cloudflare Workers 支持 |
 
 ```toml
 # 仅客户端（最小依赖：hmac, sha1, hex, base64）
@@ -55,6 +56,53 @@ camo = { git = "https://github.com/AprilNEA/camo-rs" }
 [dependencies]
 camo = { git = "https://github.com/AprilNEA/camo-rs", features = ["server"] }
 ```
+
+## Cloudflare Workers
+
+将 camo-rs 部署到 Cloudflare Workers，实现边缘图片代理。
+
+### 前置要求
+
+```bash
+# 安装 wasm 目标
+rustup target add wasm32-unknown-unknown
+
+# 安装 wrangler CLI
+npm install -g wrangler
+```
+
+### 部署
+
+```bash
+# 设置密钥
+wrangler secret put CAMO_KEY
+
+# 部署
+wrangler deploy
+```
+
+### 配置
+
+编辑 `wrangler.toml`：
+
+```toml
+name = "camo-rs"
+main = "build/worker/shim.mjs"
+compatibility_date = "2024-12-01"
+
+[build]
+command = "cargo install worker-build && worker-build --release --features worker"
+
+[vars]
+CAMO_MAX_SIZE = "5242880"  # 5MB
+```
+
+### 环境变量
+
+| 变量 | 说明 |
+|------|------|
+| `CAMO_KEY` | HMAC 密钥（使用 `wrangler secret put` 设置） |
+| `CAMO_MAX_SIZE` | 最大内容大小（字节），默认 5MB |
 
 ## 库使用
 

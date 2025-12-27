@@ -1,3 +1,4 @@
+use crate::content_types::{AUDIO_TYPES, IMAGE_TYPES, VIDEO_TYPES};
 use clap::{Parser, Subcommand};
 use std::sync::Arc;
 
@@ -70,73 +71,14 @@ pub enum Command {
 
 impl Cli {
     pub fn allowed_content_types(&self) -> Vec<&'static str> {
-        let mut types = vec![
-            "image/bmp",
-            "image/cgm",
-            "image/g3fax",
-            "image/gif",
-            "image/ief",
-            "image/jp2",
-            "image/jpeg",
-            "image/jpg",
-            "image/pict",
-            "image/png",
-            "image/prs.btif",
-            "image/svg+xml",
-            "image/tiff",
-            "image/vnd.adobe.photoshop",
-            "image/vnd.djvu",
-            "image/vnd.dwg",
-            "image/vnd.dxf",
-            "image/vnd.fastbidsheet",
-            "image/vnd.fpx",
-            "image/vnd.fst",
-            "image/vnd.fujixerox.edmics-mmr",
-            "image/vnd.fujixerox.edmics-rlc",
-            "image/vnd.microsoft.icon",
-            "image/vnd.ms-modi",
-            "image/vnd.net-fpx",
-            "image/vnd.wap.wbmp",
-            "image/vnd.xiff",
-            "image/webp",
-            "image/x-cmu-raster",
-            "image/x-cmx",
-            "image/x-icon",
-            "image/x-macpaint",
-            "image/x-pcx",
-            "image/x-pict",
-            "image/x-portable-anymap",
-            "image/x-portable-bitmap",
-            "image/x-portable-graymap",
-            "image/x-portable-pixmap",
-            "image/x-quicktime",
-            "image/x-rgb",
-            "image/x-xbitmap",
-            "image/x-xpixmap",
-            "image/x-xwindowdump",
-            "image/avif",
-            "image/heic",
-            "image/heif",
-        ];
+        let mut types: Vec<&'static str> = IMAGE_TYPES.to_vec();
 
         if self.allow_video {
-            types.extend([
-                "video/mp4",
-                "video/webm",
-                "video/ogg",
-                "video/quicktime",
-                "video/x-msvideo",
-            ]);
+            types.extend(VIDEO_TYPES);
         }
 
         if self.allow_audio {
-            types.extend([
-                "audio/mpeg",
-                "audio/ogg",
-                "audio/wav",
-                "audio/webm",
-                "audio/flac",
-            ]);
+            types.extend(AUDIO_TYPES);
         }
 
         types

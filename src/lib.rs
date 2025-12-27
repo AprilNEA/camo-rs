@@ -35,11 +35,20 @@
 mod crypto;
 mod encoding;
 
-pub use crypto::generate_digest;
+#[cfg(any(feature = "server", feature = "worker"))]
+mod content_types;
+
+#[cfg(feature = "worker")]
+mod worker;
+
+pub use crypto::{generate_digest, verify_digest};
 pub use encoding::{encode_url_base64, encode_url_hex};
 
-#[cfg(feature = "server")]
+#[cfg(any(feature = "server", feature = "worker"))]
 pub use encoding::decode_url;
+
+#[cfg(any(feature = "server", feature = "worker"))]
+pub use content_types::{is_allowed_content_type, is_allowed_image_type, IMAGE_TYPES};
 
 /// URL encoding format
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -234,21 +243,8 @@ impl CamoUrl {
     /// assert!(!camo.verify("http://example.com/image.png", "invalid"));
     /// ```
     pub fn verify(&self, url: impl AsRef<str>, digest: &str) -> bool {
-        let expected = generate_digest(&self.key, url.as_ref());
-        constant_time_eq(expected.as_bytes(), digest.as_bytes())
+        verify_digest(&self.key, url.as_ref(), digest)
     }
-}
-
-/// Constant-time string comparison to prevent timing attacks
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
-    let mut result = 0u8;
-    for (x, y) in a.iter().zip(b.iter()) {
-        result |= x ^ y;
-    }
-    result == 0
 }
 
 /// Generate a signed Camo URL (convenience function)

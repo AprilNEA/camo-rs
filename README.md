@@ -45,6 +45,7 @@ The binary will be at `target/release/camo-rs`.
 |---------|---------|-------------|
 | `client` | Yes | Core URL signing functionality with minimal dependencies |
 | `server` | No | Full proxy server with CLI, metrics, and all dependencies |
+| `worker` | No | Cloudflare Workers support |
 
 ```toml
 # Client only (minimal dependencies: hmac, sha1, hex, base64)
@@ -55,6 +56,53 @@ camo = { git = "https://github.com/AprilNEA/camo-rs" }
 [dependencies]
 camo = { git = "https://github.com/AprilNEA/camo-rs", features = ["server"] }
 ```
+
+## Cloudflare Workers
+
+Deploy camo-rs to Cloudflare Workers for edge-based image proxying.
+
+### Prerequisites
+
+```bash
+# Install wasm target
+rustup target add wasm32-unknown-unknown
+
+# Install wrangler CLI
+npm install -g wrangler
+```
+
+### Deploy
+
+```bash
+# Set your secret key
+wrangler secret put CAMO_KEY
+
+# Deploy
+wrangler deploy
+```
+
+### Configuration
+
+Edit `wrangler.toml`:
+
+```toml
+name = "camo-rs"
+main = "build/worker/shim.mjs"
+compatibility_date = "2024-12-01"
+
+[build]
+command = "cargo install worker-build && worker-build --release --features worker"
+
+[vars]
+CAMO_MAX_SIZE = "5242880"  # 5MB
+```
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `CAMO_KEY` | HMAC secret key (use `wrangler secret put`) |
+| `CAMO_MAX_SIZE` | Maximum content size in bytes (default: 5MB) |
 
 ## Library Usage
 

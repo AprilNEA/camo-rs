@@ -25,9 +25,9 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/health", get(health_check))
         .route("/favicon.ico", get(favicon))
         // Query string format: /<digest>?url=<url>
-        .route("/{digest}", get(proxy_query))
+        .route("/:digest", get(proxy_query))
         // Path format: /<digest>/<encoded_url>
-        .route("/{digest}/{*encoded_url}", get(proxy_path))
+        .route("/:digest/*encoded_url", get(proxy_path))
         .layer(TraceLayer::new_for_http())
         .with_state(state.clone());
 

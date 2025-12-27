@@ -4,8 +4,8 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 ///
 /// Returns None if decoding fails
 ///
-/// This function is only available with the `server` feature.
-#[cfg(feature = "server")]
+/// This function is only available with the `server` or `worker` feature.
+#[cfg(any(feature = "server", feature = "worker"))]
 pub fn decode_url(encoded: &str) -> Option<String> {
     // Try hex first (40+ chars typically)
     if let Ok(bytes) = hex::decode(encoded) {
@@ -55,7 +55,7 @@ mod tests {
         assert!(URL_SAFE_NO_PAD.decode(&encoded).is_ok());
     }
 
-    #[cfg(feature = "server")]
+    #[cfg(any(feature = "server", feature = "worker"))]
     #[test]
     fn test_hex_roundtrip() {
         let url = "https://example.com/image.png";
@@ -64,7 +64,7 @@ mod tests {
         assert_eq!(decoded, url);
     }
 
-    #[cfg(feature = "server")]
+    #[cfg(any(feature = "server", feature = "worker"))]
     #[test]
     fn test_base64_roundtrip() {
         let url = "https://example.com/image.png";
