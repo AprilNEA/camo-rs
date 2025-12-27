@@ -1,9 +1,9 @@
 [package]
 name = "camo-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["AprilNEA <dev@aprilnea.me> (https://aprilnea.me)"]
-description = "A Rust implementation of Camo - SSL image proxy"
+description = "Camo proxies insecure HTTP images over HTTPS, preventing mixed content warnings on secure pages."
 license = "MIT"
 repository = "https://github.com/AprilNEA/camo-rs"
 keywords = ["camo", "proxy", "image", "ssl", "https"]
@@ -15,7 +15,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "camo-rs"
+name = "camo"
 path = "src/cli.rs"
 required-features = ["server", "client"]
 
