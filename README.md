@@ -61,7 +61,18 @@ camo = { git = "https://github.com/AprilNEA/camo-rs", features = ["server"] }
 
 Deploy camo-rs to Cloudflare Workers for edge-based image proxying.
 
-### Prerequisites
+### One-Click Deploy
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/AprilNEA/camo-rs)
+
+> **Important:** After deployment, you must set your HMAC secret key:
+> ```bash
+> wrangler secret put CAMO_KEY
+> ```
+
+### Manual Deployment
+
+#### Prerequisites
 
 ```bash
 # Install wasm target
@@ -71,7 +82,7 @@ rustup target add wasm32-unknown-unknown
 npm install -g wrangler
 ```
 
-### Deploy
+#### Deploy
 
 ```bash
 # Set your secret key
@@ -81,17 +92,17 @@ wrangler secret put CAMO_KEY
 wrangler deploy
 ```
 
-### Configuration
+#### Configuration
 
 Edit `wrangler.toml`:
 
 ```toml
 name = "camo-rs"
 main = "build/worker/shim.mjs"
-compatibility_date = "2024-12-01"
+compatibility_date = "2025-01-01"
 
 [build]
-command = "cargo install worker-build && worker-build --release --features worker"
+command = "cargo install -q worker-build && worker-build --release --features worker"
 
 [vars]
 CAMO_MAX_SIZE = "5242880"  # 5MB

@@ -61,7 +61,18 @@ camo = { git = "https://github.com/AprilNEA/camo-rs", features = ["server"] }
 
 将 camo-rs 部署到 Cloudflare Workers，实现边缘图片代理。
 
-### 前置要求
+### 一键部署
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/AprilNEA/camo-rs)
+
+> **重要提示：** 部署完成后，必须设置 HMAC 密钥：
+> ```bash
+> wrangler secret put CAMO_KEY
+> ```
+
+### 手动部署
+
+#### 前置要求
 
 ```bash
 # 安装 wasm 目标
@@ -71,7 +82,7 @@ rustup target add wasm32-unknown-unknown
 npm install -g wrangler
 ```
 
-### 部署
+#### 部署
 
 ```bash
 # 设置密钥
@@ -81,17 +92,17 @@ wrangler secret put CAMO_KEY
 wrangler deploy
 ```
 
-### 配置
+#### 配置
 
 编辑 `wrangler.toml`：
 
 ```toml
 name = "camo-rs"
 main = "build/worker/shim.mjs"
-compatibility_date = "2024-12-01"
+compatibility_date = "2025-01-01"
 
 [build]
-command = "cargo install worker-build && worker-build --release --features worker"
+command = "cargo install -q worker-build && worker-build --release --features worker"
 
 [vars]
 CAMO_MAX_SIZE = "5242880"  # 5MB
