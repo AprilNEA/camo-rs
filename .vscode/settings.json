@@ -1,0 +1,7 @@
+{
+  "rust-analyzer.cargo.allTargets": true,
+  "rust-analyzer.cargo.features": [
+    "server",
+    "client"
+  ]
+}
