@@ -48,4 +48,4 @@ pub use worker::*;
 #[cfg(feature = "client")]
 mod camo;
 #[cfg(feature = "client")]
-pub use camo::{CamoUrl, Encoding, SignedUrl};
+pub use camo::{CamoUrl, Encoding, SignedUrl, sign_url};

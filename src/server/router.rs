@@ -163,6 +163,7 @@ async fn proxy_request(
     }
 }
 
+#[allow(dead_code)]
 async fn metrics_handler() -> impl IntoResponse {
     // Prometheus metrics will be rendered by the metrics-exporter-prometheus crate
     // This is a placeholder - actual implementation depends on how metrics recorder is set up

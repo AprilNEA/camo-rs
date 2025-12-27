@@ -1,7 +1,6 @@
 use crate::server::{
     config::Config,
     error::CamoError,
-    http_client::WorkerFetchClient,
     router::{create_router, AppState},
 };
 use std::sync::Arc;

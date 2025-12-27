@@ -67,6 +67,7 @@ pub const AUDIO_TYPES: &[&str] = &[
 ];
 
 /// Check if a content type is an allowed image type
+#[allow(dead_code)]
 pub fn is_allowed_image_type(content_type: &str) -> bool {
     let ct_lower = content_type.to_lowercase();
     let mime_type = ct_lower.split(';').next().unwrap_or("").trim();
@@ -74,6 +75,7 @@ pub fn is_allowed_image_type(content_type: &str) -> bool {
 }
 
 /// Check if content type is allowed (with optional video/audio support)
+#[allow(dead_code)]
 pub fn is_allowed_content_type(content_type: &str, allow_video: bool, allow_audio: bool) -> bool {
     let ct_lower = content_type.to_lowercase();
     let mime_type = ct_lower.split(';').next().unwrap_or("").trim();

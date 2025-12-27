@@ -1,7 +1,7 @@
 [package]
 name = "camo-rs"
 version = "0.1.1"
-edition = "2021"
+edition = "2024"
 authors = ["AprilNEA <dev@aprilnea.me> (https://aprilnea.me)"]
 description = "Camo proxies insecure HTTP images over HTTPS, preventing mixed content warnings on secure pages."
 license = "MIT"
