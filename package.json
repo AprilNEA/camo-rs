@@ -1,0 +1,8 @@
+{
+  "name":"camo-rs",
+  "private": true,
+  "scripts": {
+    "build": "curl https://sh.rustup.rs -sSf | sh -s -- -y\n. \"$HOME/.cargo/env\"\ncargo install cargo-generate",
+    "deploy": ". \"$HOME/.cargo/env\"\nnpx wrangler deploy"
+  }
+}
